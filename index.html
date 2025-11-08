@@ -1,493 +1,167 @@
-
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Linear Algebra Mind Map</title>
+  <title>Linear Algebra Mind Map — Safe Mode</title>
   <style>
     :root {
-      --bg: #111831;        /* deep blue/indigo background */
-      --panel: #111831;     /* slightly lighter panel */
-      --ink: #e8ecff;       /* soft white text */
-      --muted: #9fb0ff;     /* muted accents */
-      --accent: #9ae6b4;    /* mint accent for highlights */
-      --link: #a0cfff;      /* link-ish */
+      --bg: #0b1020; --ink: #e8ecff; --muted: #9fb0ff;
     }
-    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
-    .app { display: grid; grid-template-rows: auto 1fr; height: 100%; }
-    header { display: flex; gap: 12px; align-items: center; padding: 12px 16px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0)); border-bottom: 1px solid rgba(255,255,255,0.07); }
-    header h1 { font-size: 16px; margin: 0; letter-spacing: 0.4px; color: var(--ink); }
-    header .sub { color: var(--muted); font-size: 12px; }
-    .search { position: relative; }
-    .search input { background: var(--panel); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 12px; color: var(--ink); width: min(460px, 58vw); }
-    .search kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 10px; color: var(--muted); background: rgba(255,255,255,0.08); padding: 2px 6px; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; }
-    .toolbar { margin-left: auto; display: flex; gap: 8px; }
-    .btn { background: var(--panel); border: 1px solid rgba(255,255,255,0.1); color: var(--ink); border-radius: 10px; padding: 8px 10px; cursor: pointer; font-size: 12px; }
-    .btn:hover { border-color: rgba(154, 230, 180, 0.6); box-shadow: 0 0 0 2px rgba(154,230,180,0.15) inset; }
-    .legend { font-size: 12px; color: var(--muted); display: flex; gap: 12px; align-items: center; }
-
-    /* Canvas */
-    #wrap { position: relative; overflow: hidden; }
+    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; }
+    .app { display: grid; grid-template-rows: 56px 1fr; height: 100vh; }
+    header { display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.08); }
+    header h1 { margin: 0; font-size: 16px; }
+    header .sub { font-size: 12px; color: var(--muted); }
+    /* 👇 This guarantees the drawing area has height in every browser */
+    #wrap { width: 100%; height: calc(100vh - 56px); position: relative; overflow: hidden; }
     svg { width: 100%; height: 100%; display: block; cursor: grab; }
-    svg:active { cursor: grabbing; }
-
     .node circle { fill: #1a2246; stroke: #6285ff; stroke-width: 1.2px; }
-    .node.highlight circle { stroke: var(--accent); stroke-width: 2px; }
     .node text { fill: var(--ink); font-size: 12px; }
     .link { fill: none; stroke: rgba(255,255,255,0.25); stroke-width: 1.2px; }
-
-    .pro-dots { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: var(--muted); font-size: 14px; cursor: pointer; user-select: none; }
-    .pro-dots:hover { fill: var(--accent); }
-
-    .hint { position: absolute; right: 12px; bottom: 12px; font-size: 11px; color: var(--muted); background: rgba(255,255,255,0.05); padding: 8px 10px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; }
-
-    a { color: var(--link); text-decoration: none; }
   </style>
 </head>
 <body>
   <div class="app">
     <header>
       <h1>Linear Algebra Mind Map</h1>
-      <span class="sub">click nodes to collapse • click dots to track progress</span>
-      <div class="search">
-        <input id="q" placeholder="Search concepts…" autocomplete="off" />
-        <kbd id="kbd">Ctrl K</kbd>
-      </div>
-      <div class="toolbar">
-        <button class="btn" id="expandAll">Expand all</button>
-        <button class="btn" id="collapseAll">Collapse all</button>
-        <button class="btn" id="resetView">Reset view</button>
-        <button class="btn" id="exportJson">Export JSON</button>
-        <button class="btn" id="importJson">Import JSON</button>
-      </div>
-      <span class="legend">Progress: • heard | •• know | ••• used</span>
+      <span class="sub">safe mode — should always render nodes & links</span>
     </header>
-    <div id="wrap">
-      <svg id="svg"></svg>
-      <div class="hint">Zoom: Trackpad / Ctrl+scroll · Pan: drag background</div>
-    </div>
+    <div id="wrap"><svg id="svg"></svg></div>
   </div>
 
   <script>
-  // --- DATA ---------------------------------------------------------------
-  // Curated from the concept maps in your PDF (overview, prerequisites,
-  // linear transformations, matrix computations, theory, applications).
+  // Minimal data
   const data = {
     name: "Linear Algebra",
     children: [
       { name: "Prerequisites", children: [
-          { name: "Algebra" },
-          { name: "Equations" },
-          { name: "Functions" },
-          { name: "Geometry (basics)" }
+        { name: "Algebra" }, { name: "Equations" }, { name: "Functions" }, { name: "Geometry (basics)" }
       ]},
       { name: "Core Concepts", children: [
-          { name: "Vectors" },
-          { name: "Matrices" },
-          { name: "Linear Transformations" },
-          { name: "Systems of Linear Equations" },
-          { name: "Geometry in R^n" }
+        { name: "Vectors" }, { name: "Matrices" }, { name: "Linear Transformations" }, { name: "Systems of Linear Equations" }, { name: "Geometry in R^n" }
       ]},
       { name: "Matrix Computations", children: [
-          { name: "Matrix Operations", children: [
-              { name: "Addition & Scalar mult." },
-              { name: "Matrix Multiplication" },
-              { name: "Transpose" },
-              { name: "Inverse / Determinant" }
-          ]},
-          { name: "Special Matrices", children: [
-              { name: "Diagonal / Triangular" },
-              { name: "Symmetric / Skew-symmetric" },
-              { name: "Orthogonal / Unitary" },
-              { name: "Hermitian / PSD" },
-              { name: "Sparse / Structured" }
-          ]}
+        { name: "Matrix Operations", children: [
+          { name: "Addition & Scalar mult." }, { name: "Matrix Multiplication" }, { name: "Transpose" }, { name: "Inverse / Determinant" }
+        ]},
+        { name: "Special Matrices", children: [
+          { name: "Diagonal / Triangular" }, { name: "Symmetric / Skew-symmetric" }, { name: "Orthogonal / Unitary" }, { name: "Hermitian / PSD" }, { name: "Sparse / Structured" }
+        ]}
       ]},
       { name: "Theory", children: [
-          { name: "Vector Spaces", children: [
-              { name: "Subspaces" },
-              { name: "Linear Independence" },
-              { name: "Basis & Dimension" },
-              { name: "Rank–Nullity" }
-          ]},
-          { name: "Eigenstuff", children: [
-              { name: "Eigenvalues" },
-              { name: "Eigenvectors" },
-              { name: "Diagonalization" },
-              { name: "SVD" }
-          ]}
+        { name: "Vector Spaces", children: [
+          { name: "Subspaces" }, { name: "Linear Independence" }, { name: "Basis & Dimension" }, { name: "Rank–Nullity" }
+        ]},
+        { name: "Eigenstuff", children: [
+          { name: "Eigenvalues" }, { name: "Eigenvectors" }, { name: "Diagonalization" }, { name: "SVD" }
+        ]}
       ]},
       { name: "Applications", children: [
-          { name: "Physics" }, { name: "Chemistry" }, { name: "Biology" },
-          { name: "Economics" }, { name: "Business" }, { name: "Computing" },
-          { name: "Signal Processing" }, { name: "Probability" }, { name: "Quantum" }
+        { name: "Physics" }, { name: "Chemistry" }, { name: "Biology" }, { name: "Economics" }, { name: "Business" },
+        { name: "Computing" }, { name: "Signal Processing" }, { name: "Probability" }, { name: "Quantum" }
       ]}
     ]
   };
 
-  // --- Storage helpers for per-node progress --------------------------------
-  const STORE_KEY = 'la_mindmap_progress_v1';
-  const progressMap = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-  const getKey = (d) => d.ancestors().map(n => n.data.name).reverse().join(' › ');
-  const getDots = (d) => progressMap[getKey(d)] || 0;          // 0..3
-  const setDots = (d, v) => { progressMap[getKey(d)] = v; localStorage.setItem(STORE_KEY, JSON.stringify(progressMap)); };
-
-  // --- Layout (vanilla SVG + cluster) ---------------------------------------
-  // Lightweight cluster layout (no external libs)
-  function layout(root, size) {
-    // Compute positions using a simple radial tree layout
-    const radius = Math.min(size[0], size[1]) / 2 - 40;
-    const leaves = [];
-    let maxDepth = 0;
-    root.each(d => { if (!d.children && !d._children) leaves.push(d); maxDepth = Math.max(maxDepth, d.depth); });
-
-    const byDepth = [];
-    root.each(d => { (byDepth[d.depth] ||= []).push(d); });
-
-    const angleStep = (2 * Math.PI) / (leaves.length || 1);
-    let li = 0;
-    root.each(d => {
-      let r = (d.depth / (maxDepth || 1)) * radius;
-      if (!d.children && !d._children) {
-        const a = li * angleStep - Math.PI / 2; li++;
-        d.x = size[0] / 2 + r * Math.cos(a);
-        d.y = size[1] / 2 + r * Math.sin(a);
-      }
-    });
-
-    // interpolate parents as mean of children
-    for (let depth = maxDepth - 1; depth >= 0; depth--) {
-      for (const d of (byDepth[depth] || [])) {
-        const kids = (d.children || d._children || []);
-        if (kids.length) {
-          d.x = kids.reduce((s, c) => s + c.x, 0) / kids.length;
-          d.y = kids.reduce((s, c) => s + c.y, 0) / kids.length;
-        } else if (d.depth === 0) {
-          d.x = size[0] / 2; d.y = size[1] / 2;
-        }
-      }
-    }
+  // Tiny helper: tree structure
+  function H(obj, depth=0, parent=null){
+    const n={data:obj, depth, parent, children:null, _children:null};
+    if (obj.children?.length) n.children = obj.children.map(c=>H(c, depth+1, n));
+    return n;
   }
-
-  // --- Build scene -----------------------------------------------------------
-  const svg = document.getElementById('svg');
-  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  svg.appendChild(g);
-
-  // Zoom & pan
-  let view = { x: 0, y: 0, k: 1 };
-  function applyView() { g.setAttribute('transform', `translate(${view.x},${view.y}) scale(${view.k})`); }
-  function onWheel(e) {
-    e.preventDefault();
-    const { offsetX, offsetY, deltaY, ctrlKey } = e;
-    const k = Math.exp((ctrlKey ? -deltaY : -deltaY * 0.1) / 300);
-    const px = (offsetX - view.x) / view.k;
-    const py = (offsetY - view.y) / view.k;
-    view.k *= k;
-    view.x = offsetX - px * view.k;
-    view.y = offsetY - py * view.k;
-    applyView();
-  }
-  svg.addEventListener('wheel', onWheel, { passive: false });
-
-  let panning = false, panStart;
-  svg.addEventListener('mousedown', e => { if (e.target === svg) { panning = true; panStart = { x: e.clientX - view.x, y: e.clientY - view.y }; }});
-  window.addEventListener('mousemove', e => { if (!panning) return; view.x = e.clientX - panStart.x; view.y = e.clientY - panStart.y; applyView(); });
-  window.addEventListener('mouseup', () => panning = false);
-
-  // Hierarchy utilities
-  function hierarchy(obj, depth = 0, parent = null) {
-    const node = { data: obj, depth, parent, children: null, _children: null };
-    if (obj.children && obj.children.length) node.children = obj.children.map(ch => hierarchy(ch, depth + 1, node));
-    return node;
-  }
-  const root = hierarchy(data);
-  root.x = innerWidth/2; root.y = innerHeight/2;
-  root.children?.forEach(collapseDeep); // start collapsed a bit
-
-  function collapseDeep(d, level=1) {
-    if (!d.children) return;
-    if (d.depth >= level) { d._children = d.children; d.children = null; }
-    (d._children || d.children || []).forEach(ch => collapseDeep(ch, level));
-  }
-
-  function descendants(node) {
-    const out = [node];
-    const kids = (node.children || node._children || []);
-    for (const k of kids) out.push(...descendants(k));
-    return out;
-  }
-
-  function links(node) {
-    const out = [];
-    const nodes = descendants(node);
-    for (const n of nodes) {
-      const kids = (n.children || []);
-      for (const c of kids) out.push({ source: n, target: c });
-    }
-    return out;
-  }
-
-  function render() {
-    const bbox = svg.getBoundingClientRect();
-    const size = [bbox.width, bbox.height];
-    layout(root, size);
-
-    // LINKS
-    const existingLinks = new Map();
-    g.querySelectorAll('path.link').forEach(p => existingLinks.set(p.dataset.key, p));
-    const newLinks = [];
-    for (const L of links(root)) {
-      const key = getKey(L.target);
-      let p = existingLinks.get(key);
-      const d = `M ${L.source.x},${L.source.y} C ${(L.source.x*2+L.target.x)/3},${(L.source.y*2+L.target.y)/3} ${(L.source.x+L.target.x*2)/3},${(L.source.y+L.target.y*2)/3} ${L.target.x},${L.target.y}`;
-      if (!p) {
-        p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        p.setAttribute('class', 'link');
-        p.dataset.key = key;
-        g.appendChild(p);
-      }
-      p.setAttribute('d', d);
-      newLinks.push(key);
-    }
-    // remove stale links
-    g.querySelectorAll('path.link').forEach(p => { if (!newLinks.includes(p.dataset.key)) p.remove(); });
-
-    // NODES
-    const existingNodes = new Map();
-    g.querySelectorAll('g.node').forEach(n => existingNodes.set(n.dataset.key, n));
-    const nodesList = descendants(root);
-    const seen = [];
-    for (const d of nodesList) {
-      const key = getKey(d);
-      let n = existingNodes.get(key);
-      if (!n) {
-        n = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        n.setAttribute('class', 'node');
-        n.dataset.key = key;
-        // Circle
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('r', 10);
-        n.appendChild(circle);
-        // Label
-        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        label.setAttribute('x', 14);
-        label.setAttribute('y', 4);
-        label.textContent = d.data.name;
-        n.appendChild(label);
-        // Progress dots
-        const dots = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        dots.setAttribute('class', 'pro-dots');
-        dots.setAttribute('x', 14 + 8 + d.data.name.length * 6.2);
-        dots.setAttribute('y', 4);
-        dots.textContent = ''.padStart(getDots(d), '•');
-        dots.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const nxt = (getDots(d) + 1) % 4; // 0..3
-          setDots(d, nxt); dots.textContent = ''.padStart(nxt, '•');
-        });
-        n.appendChild(dots);
-        // Toggle on click
-        n.addEventListener('click', () => {
-          if (d.children) { d._children = d.children; d.children = null; }
-          else if (d._children) { d.children = d._children; d._children = null; }
-          render();
-        });
-        g.appendChild(n);
-      }
-      n.setAttribute('transform', `translate(${d.x},${d.y})`);
-      seen.push(key);
-    }
-    // remove stale nodes
-    g.querySelectorAll('g.node').forEach(n => { if (!seen.includes(n.dataset.key)) n.remove(); });
-  }
-
-  function expandAll(d=root) {
-    if (d._children) { d.children = d._children; d._children = null; }
-    (d.children || []).forEach(expandAll);
-  }
-  function collapseAll(d=root) {
-    (d.children || []).forEach(collapseAll);
-    if (d.depth) { d._children = d.children; d.children = null; }
-  }
-
-  function resetView() { view = { x: 0, y: 0, k: 1 }; applyView(); render(); }
-
-  function search(term) {
-    term = term.trim().toLowerCase();
-    g.querySelectorAll('.node').forEach(n => n.classList.remove('highlight'));
-    if (!term) return;
-    // Expand all to reveal matches
-    expandAll(); render();
-    // Highlight
-    g.querySelectorAll('g.node').forEach(n => {
-      const label = n.querySelector('text');
-      if (!label) return;
-      if (label.textContent.toLowerCase().includes(term)) n.classList.add('highlight');
-    });
-  }
-
-  // Wire UI
-  document.getElementById('expandAll').onclick = () => { expandAll(); render(); };
-  document.getElementById('collapseAll').onclick = () => { collapseAll(); render(); };
-  document.getElementById('resetView').onclick = () => { resetView(); };
-  const q = document.getElementById('q');
-  q.addEventListener('input', () => search(q.value));
-  window.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-      e.preventDefault(); q.focus(); q.select();
-    }
-  });
-
-  document.getElementById('exportJson').onclick = () => {
-    const blob = new Blob([JSON.stringify({ data, progress: progressMap }, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'la_mindmap_progress.json';
-    a.click();
-  };
-  document.getElementById('importJson').onclick = async () => {
-    const input = document.createElement('input');
-    input.type = 'file'; input.accept = 'application/json';
-    input.onchange = async () => {
-      const file = input.files[0]; if (!file) return;
-      const text = await file.text();
-      try {
-        const obj = JSON.parse(text);
-        if (obj.progress) {
-          Object.assign(progressMap, obj.progress);
-          localStorage.setItem(STORE_KEY, JSON.stringify(progressMap));
-          render();
-        }
-      } catch (e) { alert('Invalid JSON'); }
-    };
-    input.click();
-  };
-
-  // Initial mount
-  function resize() { render(); }
-  window.addEventListener('resize', resize);
-  applyView(); render();
-  </script>
-</body>
-</html>
-```
-
----
-
-## 2) 🧩 Notion‑style Embed — `notion-embed.html`
-
-> Minimal HTML that fits well inside a Notion **Embed** block (or any iframe). It auto-sizes the map to the frame.
-
-```html
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LA Mind Map — Embed</title>
-  <style>
-    html, body { height: 100%; margin: 0; background: #0b1020; color: #e8ecff; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; }
-    #wrap { width: 100%; height: 100%; position: relative; overflow: hidden; }
-    svg { width: 100%; height: 100%; display: block; cursor: grab; }
-    .node circle { fill: #1a2246; stroke: #6285ff; stroke-width: 1.1px; }
-    .node text { fill: #e8ecff; font-size: 12px; }
-    .link { stroke: rgba(255,255,255,0.22); fill: none; stroke-width: 1.1px; }
-    .pro { fill: #9fb0ff; font-size: 13px; cursor: pointer; }
-  </style>
-</head>
-<body>
-  <div id="wrap"><svg id="svg"></svg></div>
-  <script>
-  const data = {
-    name: "Linear Algebra",
-    children: [
-      { name: "Prerequisites", children: [ { name: "Algebra" }, { name: "Equations" }, { name: "Functions" }, { name: "Geometry (basics)" } ] },
-      { name: "Core Concepts", children: [ { name: "Vectors" }, { name: "Matrices" }, { name: "Linear Transformations" }, { name: "Systems of Linear Equations" }, { name: "Geometry in R^n" } ] },
-      { name: "Matrix Computations", children: [
-        { name: "Matrix Operations", children: [ { name: "Addition & Scalar mult." }, { name: "Matrix Multiplication" }, { name: "Transpose" }, { name: "Inverse / Determinant" } ] },
-        { name: "Special Matrices", children: [ { name: "Diagonal / Triangular" }, { name: "Symmetric / Skew-symmetric" }, { name: "Orthogonal / Unitary" }, { name: "Hermitian / PSD" }, { name: "Sparse / Structured" } ] }
-      ] },
-      { name: "Theory", children: [
-        { name: "Vector Spaces", children: [ { name: "Subspaces" }, { name: "Linear Independence" }, { name: "Basis & Dimension" }, { name: "Rank–Nullity" } ] },
-        { name: "Eigenstuff", children: [ { name: "Eigenvalues" }, { name: "Eigenvectors" }, { name: "Diagonalization" }, { name: "SVD" } ] }
-      ] },
-      { name: "Applications", children: [ { name: "Physics" }, { name: "Chemistry" }, { name: "Biology" }, { name: "Economics" }, { name: "Business" }, { name: "Computing" }, { name: "Signal Processing" }, { name: "Probability" }, { name: "Quantum" } ] }
-    ]
-  };
-
-  const STORE_KEY = 'la_mindmap_progress_embed_v1';
-  const progress = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-  const key = (d) => d.ancestors().map(n => n.data.name).reverse().join(' › ');
-
-  const svg = document.getElementById('svg');
-  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  svg.appendChild(g);
-
-  let view = { x: 0, y: 0, k: 1 };
-  function apply() { g.setAttribute('transform', `translate(${view.x},${view.y}) scale(${view.k})`); }
-  svg.addEventListener('wheel', e => { e.preventDefault(); const k = Math.exp((-e.deltaY * 0.1) / 300); const px=(e.offsetX-view.x)/view.k, py=(e.offsetY-view.y)/view.k; view.k*=k; view.x=e.offsetX-px*view.k; view.y=e.offsetY-py*view.k; apply(); }, { passive: false });
-  let drag=false, s; svg.addEventListener('mousedown', e=>{ if(e.target===svg){drag=true; s={x:e.clientX-view.x,y:e.clientY-view.y};}});
-  addEventListener('mousemove', e=>{ if(drag){ view.x=e.clientX-s.x; view.y=e.clientY-s.y; apply(); }});
-  addEventListener('mouseup', ()=>drag=false);
-
-  function H(obj, depth=0, parent=null){ const n={data:obj,depth,parent,children:null,_children:null}; if(obj.children?.length) n.children=obj.children.map(c=>H(c,depth+1,n)); return n; }
   const root = H(data);
-  root.children?.forEach(d=>{ if(d.children){ d._children=d.children; d.children=null; }});
 
-  function desc(n){ const o=[n]; for(const c of (n.children||n._children||[])) o.push(...desc(c)); return o; }
-  function linx(n){ const o=[]; for(const d of desc(n)) for(const c of (d.children||[])) o.push({s:d,t:c}); return o; }
-
+  // Lay out nodes in a radial pattern based on the SVG size
   function layout(size){
-    const radius=Math.min(size[0], size[1])/2-30; let max=0, leaves=[];
-    root.each=d=>{}; // placeholder for parity with other build
-    (function walk(n){ if(!(n.children||n._children)) leaves.push(n); max=Math.max(max,n.depth); (n.children||n._children||[]).forEach(walk); })(root);
-    const step=(2*Math.PI)/(leaves.length||1); let i=0;
-    (function place(n){ if(!(n.children||n._children)){ const a=i*step-Math.PI/2; const r=(n.depth/(max||1))*radius; n.x=innerWidth/2+r*Math.cos(a); n.y=innerHeight/2+r*Math.sin(a); i++; }
-      (n.children||n._children||[]).forEach(place); })(root);
-    const levels=[]; (function pull(n){ (levels[n.depth] ||= []).push(n); (n.children||n._children||[]).forEach(pull); })(root);
-    for(let d=max-1; d>=0; d--){ for(const n of (levels[d]||[])){ const kids=(n.children||n._children||[]); if(kids.length){ n.x=kids.reduce((s,c)=>s+c.x,0)/kids.length; n.y=kids.reduce((s,c)=>s+c.y,0)/kids.length; } else if(n.depth===0){ n.x=innerWidth/2; n.y=innerHeight/2; } }}
+    const [W,H] = size;
+    const cx = W/2, cy = H/2;
+    let leaves = [], maxDepth = 0;
+    (function collect(n){
+      maxDepth = Math.max(maxDepth, n.depth);
+      const kids = n.children || [];
+      if (!kids.length) leaves.push(n);
+      kids.forEach(collect);
+    })(root);
+
+    const R = Math.min(W, H)/2 - 40;
+    const step = (2*Math.PI) / Math.max(1, leaves.length);
+    let i = 0;
+    (function place(n){
+      const kids = n.children || [];
+      if (!kids.length){
+        const a = i * step - Math.PI/2;
+        const r = (n.depth/(maxDepth||1)) * R;
+        n.x = cx + r*Math.cos(a);
+        n.y = cy + r*Math.sin(a);
+        i++;
+      }
+      kids.forEach(place);
+    })(root);
+
+    const levels = [];
+    (function gather(n){ (levels[n.depth] ||= []).push(n); (n.children||[]).forEach(gather); })(root);
+    for (let d=maxDepth-1; d>=0; d--){
+      for (const n of (levels[d]||[])){
+        const kids = n.children || [];
+        if (kids.length){
+          n.x = kids.reduce((s,c)=>s+c.x,0)/kids.length;
+          n.y = kids.reduce((s,c)=>s+c.y,0)/kids.length;
+        } else if (n.depth === 0) { n.x = cx; n.y = cy; }
+      }
+    }
+  }
+
+  // Render
+  const svg = document.getElementById('svg');
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  svg.appendChild(g);
+
+  function links(n){
+    const out = [];
+    (function walk(x){
+      const kids = x.children || [];
+      kids.forEach(c => { out.push({s:x,t:c}); walk(c); });
+    })(n);
+    return out;
   }
 
   function render(){
-    const r=svg.getBoundingClientRect(); layout([r.width,r.height]);
-    // links
-    const seenL=new Set();
-    for(const L of linx(root)){
-      const key = L.t.data.name+"@"+L.s.data.name;
-      let p = g.querySelector(`path[data-k="${key}"]`);
-      const d=`M ${L.s.x},${L.s.y} C ${(L.s.x*2+L.t.x)/3},${(L.s.y*2+L.t.y)/3} ${(L.s.x+L.t.x*2)/3},${(L.s.y+L.t.y*2)/3} ${L.t.x},${L.t.y}`;
-      if(!p){ p=document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('class','link'); p.dataset.k=key; g.appendChild(p);} p.setAttribute('d',d); seenL.add(key);
+    const r = svg.getBoundingClientRect();
+    layout([r.width, r.height]);
+
+    g.innerHTML = ""; // simple redraw
+
+    // edges
+    for (const L of links(root)){
+      const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+      const d = `M ${L.s.x},${L.s.y} C ${(L.s.x*2+L.t.x)/3},${(L.s.y*2+L.t.y)/3} ${(L.s.x+L.t.x*2)/3},${(L.s.y+L.t.y*2)/3} ${L.t.x},${L.t.y}`;
+      p.setAttribute('class','link'); p.setAttribute('d', d);
+      g.appendChild(p);
     }
-    g.querySelectorAll('path.link').forEach(p=>{ if(!seenL.has(p.dataset.k)) p.remove(); });
 
     // nodes
-    const seenN=new Set();
-    (function walk(n){
-      const k = key(n);
-      let gn = g.querySelector(`g.node[data-k="${CSS.escape(k)}"]`);
-      if(!gn){
-        gn=document.createElementNS('http://www.w3.org/2000/svg','g'); gn.setAttribute('class','node'); gn.dataset.k=k;
-        const c=document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('r',9); gn.appendChild(c);
-        const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',13); t.setAttribute('y',4); t.textContent=n.data.name; gn.appendChild(t);
-        const pd=document.createElementNS('http://www.w3.org/2000/svg','text'); pd.setAttribute('class','pro'); pd.setAttribute('x', 13 + 8 + n.data.name.length*6.1); pd.setAttribute('y',4); pd.textContent=''.padStart(progress[k]||0,'•');
-        pd.addEventListener('click', (e)=>{ e.stopPropagation(); const v=((progress[k]||0)+1)%4; progress[k]=v; localStorage.setItem(STORE_KEY, JSON.stringify(progress)); pd.textContent=''.padStart(v,'•'); });
-        gn.appendChild(pd);
-        gn.addEventListener('click', ()=>{ if(n.children){ n._children=n.children; n.children=null; } else if(n._children){ n.children=n._children; n._children=null; } render(); });
-        g.appendChild(gn);
-      }
+    (function draw(n){
+      const gn = document.createElementNS('http://www.w3.org/2000/svg','g');
+      gn.setAttribute('class','node');
       gn.setAttribute('transform', `translate(${n.x},${n.y})`);
-      seenN.add(k);
-      (n.children||n._children||[]).forEach(walk);
-    })(root);
 
-    g.querySelectorAll('g.node').forEach(n=>{ if(!seenN.has(n.dataset.k)) n.remove(); });
+      const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('r', 10); gn.appendChild(c);
+
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', 14); t.setAttribute('y', 4);
+      t.textContent = n.data.name; gn.appendChild(t);
+
+      g.appendChild(gn);
+      (n.children||[]).forEach(draw);
+    })(root);
   }
 
   addEventListener('resize', render);
-  apply(); render();
+  render();
   </script>
 </body>
 </html>
-
